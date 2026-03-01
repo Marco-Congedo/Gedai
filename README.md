@@ -6,7 +6,9 @@
 
 ---
 
-This is a pure-[julia](https://julialang.org/) package implementing the **GEDAI** denoising method for EEG data.
+# Gedai
+
+A pure-[julia](https://julialang.org/) package implementing the **GEDAI** denoising method for EEG data.
 
 For information about the method, please visit the [GEDAI website](https://neurotuning.github.io/gedai/dev/index.html).
 
@@ -75,9 +77,10 @@ The package provides several example files. Any of the following can be used in 
 cleans = similar(data); # memory to store the corresponding cleaned recordings
 refCOV = refcov(labels, 0.05); # precompute reference matrix
 precomp = precompute(refCOV, :cholesky); # precompute gevd matrices
-@threads for (d, datum) in enumerate(data) # multi-threading across files and reuse precomputations
-            clean[d], rest = denoise(datum, sr, labels; threaded=false, refCOV, precomp);
+@threads for (d, datum) in enumerate(data) # multi-threading across files and reuse pre-computations
+            cleans[d], rest = denoise(datum, sr, labels; threaded=false, refCOV, precomp);
 end
+# `cleans` is now a vector holding the clean EEG recordings corresponding to `data`
 
 ```
 
