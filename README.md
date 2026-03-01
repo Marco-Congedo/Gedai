@@ -37,7 +37,7 @@ For information about the method, please visit the [GEDAI website](https://neuro
 Execute the following command in julia's REPL:
 
 ```julia
-]add Gedai, EEGPlot, GLMakie
+]add https://github.com/Marco-Congedo/Gedai, EEGPlot, GLMakie
 ```
 
 [▲ index](#-index)
