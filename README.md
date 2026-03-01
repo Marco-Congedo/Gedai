@@ -55,10 +55,12 @@ data, srate, labels = read_example_data(example_data);
 
 clean, data_ref, score, t = denoise(data, srate, labels);
 
-args=(overlay_color = :burlywood, Y_color = :sienna2)
+args=(overlay_color = :burlywood, Y_color = :sienna2);
 eegplot(clean, srate, labels; overlay=data, Y = data-clean, args...)
 
 ```
+
+You will be able to inspect the data, the removed artifacts and the cleaned data. Click [here](https://github.com/Marco-Congedo/EEGPlot.jl/blob/master/docs/src/assets/GDEAI_small.gif) for a quick preview of what you will see once the code has executed.
 
 The package provides several example files. Any of the following can be used in the demo above: 
 
@@ -70,7 +72,7 @@ The package provides several example files. Any of the following can be used in 
 
 ```julia
 # Supposing that `data` is a vector of EEG recordings 
-cleans = similar(data) # memory to store the corresponding cleaned recordings
+cleans = similar(data); # memory to store the corresponding cleaned recordings
 refCOV = refcov(labels, 0.05); # precompute reference matrix
 precomp = precompute(refCOV, :cholesky); # precompute gevd matrices
 @threads for (d, datum) in enumerate(data) # multi-threading across files and reuse precomputations
