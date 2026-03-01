@@ -62,7 +62,7 @@ eegplot(clean, srate, labels; overlay=data, Y = data-clean, args...)
 
 The package provides several example files. Any of the following can be used in the demo above: 
 
-*"CAUEEG", "artifact_jumps", "empirical_NOISE_EOG_EMG", "synthetic_bad_channels", "blinks and bad channels".*
+"CAUEEG", "artifact_jumps", "empirical_NOISE_EOG_EMG", "synthetic_bad_channels", "blinks and bad channels".
 
 > [!TIP] 
 > If you need to denoise several files with the same electrode montage (`labels`), 
@@ -151,7 +151,6 @@ function denoise(# arguments:
 - `precomp`: default = `nothing`, can hold pre-computed matrices to hasten computations:
     - if `gevd_method=:cholesky` : a 2-tuple holding the Cholesky factor of refCOV and its inverse transpose
     - if `gevd_method=:invsqrt` : a 2-tuple holding the principal square root of refCOV and its inverse
-    - if `gevd_method=:prewhite` : a 2-tuple holding the whitening matrix of refCOV and its right-inverse. In this case, providing `refCOV` is useless as it is not needed at all in the algorithm,
 
 > [!NOTE]
 > For precomputing these matrices, see [precompute](#precompute)
@@ -163,12 +162,12 @@ function denoise(# arguments:
 The following optional keyword arguments are there for methodological research purposes. Change them only if you know what you are doing :
 
 - `lambda`: a positive real number, the amount of regularization of the reference matrix. Deafult = `0.05`
-- `epoch_length`: a positive real number, the length of the sliding window, in seconds, used by GEDAI
-- `top_PCs`: a positive integer < `N` the number of the generalized principal components used by the SENSAI algorithm.
+- `epoch_length`: a positive real number, the length of the sliding window, in seconds, used by GEDAI. Deafult = `1.0`
+- `top_PCs`: a positive integer < `N` the number of the generalized principal components used by the SENSAI algorithm. Deafult = `3`
 - `cov_mean_type`: if `nothing` (default), subtracts the mean vector when computing covariance matrices. If `0`, do not.
 - `threshold`: a positive real number, the threshold for artifact correction used in SENSAI. Default = `1.0`
-- `brent_tol`: a real number, default = `0.01`, used to find the local minimum of a function using Brent's method (for SENSAI)
-- `t_range`: Tuple{Float64, Float64}, default = (-3.0, 12.0)
+- `brent_tol`: a real number used to find the local minimum of a function using Brent's method (for SENSAI). Deafult = `0.01`
+- `t_range`: Tuple{Float64, Float64}. Deafult = (0.0, 12.0)
 
 **Return:**
 
@@ -176,7 +175,7 @@ The 4-tuple holding:
 - an EEG data matrix of the same size as `data`, holding the denoised data. The removed artifacts are obtained subtracting this matrix from `data`.
 This matrix is referenced to the full-rank pseudo-common average (the common average reference with correction = 1 as explained [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!)) and high-pass filtered if high-pass is >0. 
 - the original data referenced to the full-rank pseudo-common average and high-pass filtered if high-pass is >0.
-- the SENSAI score,
+- the SENSAI score (the higher, the better),
 - the execution time in seconds.
 
 See [Examples](#-examples) for usage.
@@ -292,12 +291,18 @@ Ros T, Férat V., Huang Y., Colangelo C., Kia S.M., Wolfers T., Vulliemoz S., & 
 Congedo M, Ros T (2026) *Gedai: denoising EEG data in Julia*, GitHub repository
 
 
+[▲ index](#-index)
+
+![separator](Documents/separator.png)
 
 ## ⚖️ License
 You may use this software under the terms of the PolyForm Noncommercial License 1.0.0 [LICENSE](LICENSE). This is suitable for personal use, research, or evaluation.
 
 **Commercial License**  
 If you wish to use this software in a commercial or proprietary application without being bound by terms of the PolyForm Noncommercial License 1.0.0, you must purchase a commercial license. The core algorithms in this repository are the subject of a pending patent application, and a commercial license includes a grant for patent rights.  
+
+
+[▲ index](#-index)
 
 
 
