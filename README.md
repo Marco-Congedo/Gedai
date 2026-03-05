@@ -172,7 +172,7 @@ The following optional keyword arguments are there for methodological research p
 - `cov_mean_type`: if `nothing` (default), subtracts the mean vector when computing covariance matrices. If `0`, do not.
 - `threshold`: a positive real number, the threshold for artifact correction used in SENSAI. Default = `1.0`
 - `brent_tol`: a real number used to find the local minimum of a function using Brent's method (for SENSAI). Deafult = `0.01`
-- `t_range`: Tuple{Float64, Float64}. Deafult = (0.0, 12.0)
+- `t_range`: a Tuple{Float64, Float64} delimiting the acceptance region for eigenvalues. Deafult = (0.0, 12.0).
 
 **Return:**
 
