@@ -62,7 +62,7 @@ eegplot(clean, srate, labels; overlay=data, Y = data-clean, args...)
 
 ```
 
-You will be able to inspect the data, the removed artifacts and the cleaned data. Click [here](https://github.com/Marco-Congedo/EEGPlot.jl/blob/master/docs/src/assets/GDEAI_small.gif) for a quick preview of what you will see once the code has executed.
+You will be able to inspect the data, the removed artifacts and the cleaned data. Click [here](https://github.com/Marco-Congedo/EEGPlot.jl/blob/master/docs/src/assets/GDEAI_small.gif) for a quick preview of what you will see once the code has executed. For more options on visualizations, see the [EEGPlot package](https://github.com/Marco-Congedo/EEGPlot.jl).
 
 The package provides several example files. Any of the following can be used in the demo above: 
 
