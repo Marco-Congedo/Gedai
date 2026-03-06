@@ -10,6 +10,9 @@
 
 A pure-[julia](https://julialang.org/) package implementing the **GEDAI** denoising method for EEG data.
 
+> [!NOTE] 
+> The method works very well in general, is fast and is completely automatic. The only drawback is that the EEG data needs to be referenced to a common average and such reference cannot be reverted after denoising to come back to the original electrical reference. **GEDAI** makes use of the full-rank pseudo common average reference, which corresponds to the common average reference with correction = 1 explained [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!).
+
 For information about the method, please visit the [GEDAI website](https://neurotuning.github.io/gedai/dev/index.html).
 
 ![separator](Documents/separator.png)
