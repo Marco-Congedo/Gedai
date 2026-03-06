@@ -11,9 +11,10 @@
 A pure-[julia](https://julialang.org/) package implementing the **GEDAI** denoising method for EEG data.
 
 > [!NOTE] 
-> The method **works very well** in general, is **fast** and is **completely automatic**. The only drawback is that the EEG data needs to be referenced to a common average and such reference cannot be reverted after denoising. **GEDAI** adopts the full-rank pseudo common average reference — see [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!).
+> The method **works very well** in general, is **fast** and is **completely automatic**. The only drawback is that the EEG data needs to be referenced to a common average and such reference cannot be reverted after denoising. 
+> **GEDAI** adopts the full-rank pseudo common average reference — see [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!) — and the input data is always re-referenced this way.
 
-For information about the method, please visit the [GEDAI website](https://neurotuning.github.io/gedai/dev/index.html)
+For detailed information about the method, please visit the [GEDAI website](https://neurotuning.github.io/gedai/dev/index.html)
 and read the associated paper given in the [References](#-references).
 
 ![separator](Documents/separator.png)
@@ -47,12 +48,11 @@ Execute the following command in julia's REPL:
 ![separator](Documents/separator.png)
 
 
-
 ## 💡 Examples
 Run the following code:
 
 ```julia
-using Gedai, EEGPlot, GLMakie #, Eegle
+using Gedai, EEGPlot, GLMakie
 
 example_data = "CAUEEG";
 data, srate, labels = read_example_data(example_data);
@@ -63,14 +63,9 @@ args=(overlay_color = :burlywood, Y_color=:sienna2);
 eegplot(clean, srate, labels; overlay=data, Y=data-clean, args...)
 ```
 
-> [!WARNING] 
-> If your `data` is not referenced to the full-rank pseudo common average reference, use instead:
-> eegplot(clean, srate, labels; overlay=data, Y=car!(data; correction=1)-clean, args...)
-> where `car!` is a function declared in the Eegle package.
-
 You will be able to inspect the data, the removed artifacts and the cleaned data. Click [here](https://github.com/Marco-Congedo/EEGPlot.jl/blob/master/docs/src/assets/GDEAI_small.gif) for a quick preview of what you will see once the code has executed. For more options on visualizations, see the [EEGPlot package](https://github.com/Marco-Congedo/EEGPlot.jl).
 
-The package provides several example files, which are all referenced to the full-rank pseudo common average reference. Any of the following can be used in the demo above: 
+The package provides several example files. Any of the following can be used in the demo above: 
 
 "CAUEEG", "artifact_jumps", "empirical_NOISE_EOG_EMG", "synthetic_bad_channels", "blinks and bad channels".
 
@@ -183,21 +178,13 @@ The following optional keyword arguments are there for methodological research p
 **Return:**
 
 The 4-tuple holding:
-- an EEG data matrix of the same size as `data`, holding the denoised data referenced to the full-rank pseudo-common average (the common average reference with correction = 1 as explained [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!)). 
-This matrix is referenced to the full-rank pseudo-common average (the common average reference with correction = 1 as explained [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!)) and high-pass filtered if high-pass is >0. 
+- an EEG data matrix of the same size as `data`, holding the denoised data referenced to the full-rank pseudo-common average (the common average reference with correction = 1 as explained [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!)) and high-pass filtered if high-pass is >0. 
 - the original data referenced to the full-rank pseudo-common average and high-pass filtered if high-pass is >0.
 - the SENSAI score (the higher, the better),
 - the execution time in seconds.
 
-> [!WARNING] 
-> The removed artifacts are obtained subtracting the first returned argument (the denoised data) from the input `data`. 
-> If the input `data` is not referenced to the full-rank pseudo common average reference, re-reference it using the [Eegle](https://github.com/Marco-Congedo/Eegle.jl) package. For example, suppose `denoised` is the returned denoised data :
-
-```julia
-using Eegle
-cardata = dar!(data; correction=1)
-artifacts = cardata - denoised
-```
+> [!TIP] 
+> The removed artifacts are obtained subtracting the first returned argument (the denoised data) from the second (the re-referenced input data).
 
 See [Examples](#-examples) for usage.
 
@@ -324,6 +311,3 @@ If you wish to use this software in a commercial or proprietary application with
 
 
 [▲ index](#-index)
-
-
-
