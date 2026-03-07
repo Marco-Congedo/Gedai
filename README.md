@@ -60,7 +60,7 @@ data, srate, labels = read_example_data(example_data);
 clean, data_ref, score, t = denoise(data, srate, labels);
 
 args=(overlay_color = :burlywood, Y_color=:sienna2);
-eegplot(clean, srate, labels; overlay=data, Y=data-clean, args...)
+eegplot(clean, srate, labels; overlay=data_ref, Y=data_ref-clean, args...)
 ```
 
 You will be able to inspect the data, the removed artifacts and the cleaned data. Click [here](https://github.com/Marco-Congedo/EEGPlot.jl/blob/master/docs/src/assets/GDEAI_small.gif) for a quick preview of what you will see once the code has executed. For more options on visualizations, see the [EEGPlot package](https://github.com/Marco-Congedo/EEGPlot.jl).
