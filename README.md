@@ -122,6 +122,7 @@ function denoise(# arguments:
                 threaded        ::Bool                          = true,
                 BLAS_threaded   ::Bool                          = true,
                 verbose         ::Bool                          = true
+                car             ::Bool                          = true,
                 lambda          ::Float64                       = 0.05,
                 epoch_length    ::Float64                       = 1.0,
                 top_PCs         ::Int                           = 3, 
@@ -167,6 +168,7 @@ function denoise(# arguments:
 
 The following optional keyword arguments are there for methodological research purposes. Change them only if you know what you are doing :
 
+- `car`: if `true` (default), re-reference the input data to the pseudo common average reference. 
 - `lambda`: a positive real number, the amount of regularization of the reference matrix. Deafult = `0.05`
 - `epoch_length`: a positive real number, the length of the sliding window, in seconds, used by GEDAI. Deafult = `1.0`
 - `top_PCs`: a positive integer < `N` the number of the generalized principal components used by the SENSAI algorithm. Deafult = `3`

@@ -16,6 +16,7 @@ function denoise(data::Matrix{T}, sr::Union{Float64, Int}, labels::Vector{String
                     gevd_method     ::Symbol                        = :cholesky,
                     refCOV          ::Union{SymOrHerm, Nothing}     = nothing,
                     precomp         ::Union{Chols, Whits, Nothing}  = nothing,
+                    car             ::Bool                          = true,
                     threaded        ::Bool                          = true,
                     BLAS_threaded   ::Bool                          = true,
                     verbose         ::Bool                          = true) where T<:Real
@@ -29,9 +30,9 @@ function denoise(data::Matrix{T}, sr::Union{Float64, Int}, labels::Vector{String
 
     multiband = wavelet_levels > 1 # if multiband is true, do Gedai Wavelets
 
-    # Filter data and apply Pseudo Common Average Reference (pseudocar)
-    X = isnothing(high_pass) ?  pseudo_car(data) :
-                                pseudo_car(filter_data(data, srate, high_pass)) 
+    # Filter data and apply Pseudo Common Average Reference (pseudocar) if not disabled by setting `car` = false
+    X = isnothing(high_pass) ?  (car ? pseudo_car(data) : data) :
+                                (car ? pseudo_car(filter_data(data, srate, high_pass)) : filter_data(data, srate, high_pass)) 
 
     if !(gevd_method === :prewhite) || (gevd_method === :prewhite && isnothing(precomp))
         refCOV = isnothing(refCOV) ? refcov(labels, lambda) : refCOV
