@@ -166,7 +166,7 @@ function denoise(# arguments:
 - `sr`: the sampling rate of the data. It can be an Integer or a Real type,
 - `labels`: a vector of String types holding the sensor labels (e.g., "FP1", "FP2",...). 
 > [!WARNING] 
-> Each label must match one of the strings in this [list](Documents/sensors343.txt) (case-insensitive matching).
+> Each label must match one of the strings in this [list](https://github.com/Marco-Congedo/Leadfields.jl/blob/master/Documents/sensors343.txt) (case-insensitive matching).
 
 **Optional Keyword Arguments:**
 - `wavelet_levels`: a positive integer, default = `9`. If >1, run the **wavelet-based** GEDAI with this number of bands, otherwise run the **broadband** version of GEDAI,
@@ -271,7 +271,7 @@ and regularize it by amount `lambda`.
 As in (1), but the model covariance matrix is computed from the leadfield referenced to the `reference` electrode. This can be used to perform GEDAI denoising in the original electrical reference of the data.
 
 > [!WARNING] 
-> All electrode labels (both in `labels` and `reference`) must match one of the strings in this [list](Documents/sensors343.txt) (provided in the 'Documents' directory of this repository).
+> All electrode labels (both in `labels` and `reference`) must match one of the strings in this [list](https://github.com/Marco-Congedo/Leadfields.jl/blob/master/Documents/sensors343.txt) (provided in the 'Documents' directory of this repository).
 
 See [Examples](#-examples) for usage.
 
