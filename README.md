@@ -85,7 +85,7 @@ The package provides several example files. Any of the following can be used in 
 # `sr` and `labels` are the sampling rate and electrode labels, common to all recordings,
 cleans = similar(data); # memory to store the corresponding cleaned recordings
 refCOV = refcov(labels, 0.05); # precompute model covariance matrix
-precomp = precompute(refCOV, :cholesky); # precompute gevd matrices
+precomp = precompute(refCOV, :cholesky); # precompute GEVD matrices
 @threads for (d, datum) in enumerate(data) # multi-threading across files and reuse pre-computations
             cleans[d], rest = denoise(datum, sr, labels; threaded=false, refCOV, precomp);
 end
@@ -176,10 +176,10 @@ function denoise(# arguments:
 - `wavelet_levels`: a positive integer, default = `9`. If >1, run the **wavelet-based** GEDAI with this number of bands, otherwise run the **broadband** version of GEDAI,
 - `high-pass`: a positive real number, default = `0.5`. if it is not `nothing`, submit the data to a fourth-order linear phase response
     (forward-backward) high-pass filter with cut-off at this value (Hz),
-- `gevd_method`: a symbol, the generalized eigenvector-eigenvalues (gevd) methods (default = :cholesky). Possible values are :
-    - `:gevd`: standard gevd
-    - `:cholesky`: 2-step gevd with whitening by the inverse of the Cholesky factor
-    - `:invsqrt`: 2-step gevd with whitening by the inverse of the principal square root,
+- `gevd_method`: a symbol, the generalized eigenvector-eigenvalues (GEVD) methods (default = :cholesky). Possible values are :
+    - `:gevd`: standard GEVD
+    - `:cholesky`: 2-step GEVD with whitening by the inverse of the Cholesky factor
+    - `:invsqrt`: 2-step GEVD with whitening by the inverse of the principal square root,
 - `refCOV`: Default = `nothing`. Can be a `Symmetric` or `Hermitian` matrix holding the model covariance matrix (pre-computed for hastening computations),
 
 > [!NOTE]
@@ -217,10 +217,10 @@ The 4-tuple holding:
 - the execution time in seconds.
 
 The first two returned elements are data matrices. They are referenced to the full-rank pseudo-common average (the common average reference with correction = 1 as explained [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!)) if `car` is true (default)
-and high-pass filtered if `high-pass ` is not `nothing` (default = 0.5(Hz)). 
+and high-pass filtered if `high-pass` is not `nothing` (default = 0.5(Hz)). 
 
 > [!TIP] 
-> The removed artifacts are obtained subtracting the first returned element (the denoised data, possibly re-referenced and high-pass filtered) from the second (the input data, possibly re-referenced and high-pass filtered). Always use these elements, for computing the removed artifacts.
+> The removed artifacts are obtained subtracting the first returned element (the denoised data, possibly re-referenced and high-pass filtered) from the second (the input data, possibly re-referenced and high-pass filtered). Always use the second element and not the input data for computing the removed artifacts.
 
 See [Examples](#-examples) for usage.
 
@@ -266,7 +266,7 @@ Load the model covariance matrix used by GEDAI for a given electrode montage giv
 and regularize it by amount `lambda`.
 
 > [!WARNING] 
-> Each label must match one of the strings listed in the [sensors343.txt](Documents/sensors343.txt) file (provided in the 'Documents' directory of this repository).
+> Each label must match one of the strings in this [list](Documents/sensors343.txt) (provided in the 'Documents' directory of this repository).
 
 See [Examples](#-examples) for usage.
 
@@ -286,14 +286,14 @@ are to be denoised.
 
 `refCOV` is the model covariance matrix to be used by the GEDAI algorithm. It is to be computed by function [refcov](#refcov).
 
-`gevd_method` is the generalized eigenvector-eigenvalue (gevd) method to be used when calling the [denoise](#denoise) function.
+`gevd_method` is the generalized eigenvector-eigenvalue decomposition (GEVD) method to be used when calling the [denoise](#denoise) function.
 Therefore, it must match the `gevd_method` passed to that function (for which the default is `:cholesky`).
 It can be:
-- `:cholesky` : generate a 2-tuple holding the Cholesky factor of refCOV and its inverse transpose
-- `:invsqrt` : generate a 2-tuple holding the principal square root of refCOV and its inverse
+- `:cholesky` : generate a 2-tuple holding the Cholesky factor of `refCOV` and its inverse transpose
+- `:invsqrt` : generate a 2-tuple holding the principal square root of `refCOV` and its inverse
 
 If `warning` is `true`, print a warning if `gevd_method=:gevd` has been passed, reminding that it is useless to do pre-computations in this case 
-as the gevd method does not make use of precomputed matrices.
+as the GEVD method does not make use of precomputed matrices.
 
 See [Examples](#-examples) for usage.
 
@@ -332,7 +332,7 @@ Ros T, Férat V., Huang Y., Colangelo C., Kia S.M., Wolfers T., Vulliemoz S., & 
 
 **To cite this Repo:**
 
-Congedo M, Ros T (2026) *Gedai: denoising EEG data in Julia*, GitHub repository
+Congedo M, Ros T (2026) *A Julia package for automatic artifact correction of EEG data*, GitHub repository
 
 
 [▲ index](#-index)
