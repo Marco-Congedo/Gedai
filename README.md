@@ -103,16 +103,16 @@ using Gedai, Leadfields, Statsbase
 # compute leadfield
 K, ename, eloc, gridloc = leadfield(labels; reference = "A2")
 
-# compute and regularize (lambda) the model covariance matrix of the leadfield as it is done in Gedai.jl
+# compute and regularize (lambda) the model covariance matrix of the leadfield referenced to A2
 lambda = 0.05
-refCOV = regularize(Symmetric(cov(SimpleCovariance(), K'; mean=nothing)), lambda)
+refCOV = refcov(labels, "A2", lambda)
 
 clean, data_ref, score, t = denoise(X, sr, labels; car = false, refCOV, lambda);
 
 # Note that:
 # - argument `car` is set to false to prevent re-referencing the data to the pseudo common average
 # - argument `refCOV` is passed for overriding the default model covariance matrix
-# - argument `lambda` is passed to match the regularization of the model covariance matrix
+# - argument `lambda` is passed to `denoise` to match the regularization of the model covariance matrix
 ```
 
 [▲ index](#-index)
@@ -259,14 +259,23 @@ See [Examples](#-examples) for usage.
 ### refcov
 
 ```julia
-function refcov(labels::Vector{String}, lambda::Float64= 0.05)
+(1) function refcov(labels::Vector{String}, lambda::Float64= 0.05)
+
+(2) function refcov(labels::Vector{String}, reference::String, lambda::Float64= 0.05;
+                    cov_mean_type::Union{Int, Nothing} = nothing)
 ```
 
-Load the model covariance matrix used by GEDAI for a given electrode montage given by the vector of electrode labels `labels` 
+**Method (1)**
+
+Load the default model covariance matrix used by GEDAI for a given electrode montage given by the vector of electrode labels `labels` 
 and regularize it by amount `lambda`.
 
+**Method (2)**
+
+As in (1), but the model covariance matrix is computed from the leadfield referenced to the `reference` electrode. This can be used to perform GEDAI denoising in the original electrical reference of the data.
+
 > [!WARNING] 
-> Each label must match one of the strings in this [list](Documents/sensors343.txt) (provided in the 'Documents' directory of this repository).
+> All electrode labels (both in `labels` and `reference`) must match one of the strings in this [list](Documents/sensors343.txt) (provided in the 'Documents' directory of this repository).
 
 See [Examples](#-examples) for usage.
 
@@ -333,7 +342,6 @@ Ros T, Férat V., Huang Y., Colangelo C., Kia S.M., Wolfers T., Vulliemoz S., & 
 **To cite this Repo:**
 
 Congedo M, Ros T (2026) *A Julia package for automatic artifact correction of EEG data*, GitHub repository
-
 
 [▲ index](#-index)
 

@@ -1,5 +1,7 @@
 using Statistics
 using LinearAlgebra
+using StatsBase
+using Leadfields
 
 
 """
@@ -7,6 +9,19 @@ using LinearAlgebra
 """
 refcov(labels::Vector{String}, lambda::Float64= 0.05) =
     regularize(load_leadfield(labels), lambda)
+
+"""
+ Return the leadfield covariance matrix for sensor in `labels`, with regularization `lambda`
+"""
+function refcov(labels::Vector{String}, reference::String, lambda::Float64= 0.05;
+                cov_mean_type::Union{Int, Nothing} = nothing) # or `0` )
+
+    K, _ = leadfield(labels; reference = reference)
+
+    # compute and regularize (lambda) the model covariance matrix of the leadfield as it is done in Gedai.jl
+    return regularize(Symmetric(cov(SimpleCovariance(), K'; mean=cov_mean_type)), lambda)
+end
+
 
 """
     chol_factors(labels)

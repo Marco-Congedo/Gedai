@@ -1,6 +1,7 @@
 module Gedai
 
 using MAT
+using Leadfields
 using LinearAlgebra
 using PosDefManifold
 using Statistics
