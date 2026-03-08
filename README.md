@@ -1,4 +1,3 @@
-![header](Documents/header.png)
 
 > [!TIP] 
 > 🦅
