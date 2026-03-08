@@ -92,7 +92,7 @@ end
 ```
 
 > [!TIP]
-> If you need to preserve the original electrical reference of the data, you can pre-compute a model covariance matrix with the same reference using package [Leadfields.jl](https://github.com/Marco-Congedo/Leadfields.jl). For doing so, however, the reference must be a single lead (e.g., linked ears is not allowed) and must be comprised in this [list](Documents/sensors343.txt). For example, if the electrical reference is the right ear-lobe (A2):
+> If you need to preserve the original electrical reference of the data, you can pre-compute a model covariance matrix with the same reference using package [Leadfields.jl](https://github.com/Marco-Congedo/Leadfields.jl). For doing so, however, the reference must be a single lead (e.g., linked ears is not allowed) and must be comprised in this [list](https://github.com/Marco-Congedo/Leadfields.jl/blob/master/Documents/sensors343.txt). For example, if the electrical reference is the right ear-lobe (A2):
 
 ```julia
 # Supposing that `X` is an EEG recording referenced to the right ear-lobe,
