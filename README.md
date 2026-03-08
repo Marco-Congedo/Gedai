@@ -10,17 +10,17 @@
 
 A pure-[julia](https://julialang.org/) package implementing the **GEDAI** denoising method for EEG data.
 
-**GEDAI** performs generalized eigenvalue-eigenvector (GEVD) decompositions of sliding-windows data covariance matrices and a fixed model covariance matrix obtained from a standard leadfield used in EEG inverse solutions — see [Leadfields](https://github.com/Marco-Congedo/Leadfields.jl). It defines a new criterion to define a rejection region for the artifact components, which yields a **SENSAI** score.
+**GEDAI** performs generalized eigenvalue-eigenvector decompositions (GEVD) of sliding-windows data covariance matrices and a fixed model covariance matrix obtained from a standard leadfield used in EEG inverse solutions. It defines a new criterion to define a rejection region for the artifact components, yielding a **SENSAI** score for the denoising performance (the higher, the better).
 
-The method has the advantage of being fast and of performing surprisingly well with default settings, provided that:
+The method has the advantage of being fast and of performing well in general with default settings, provided that:
 - the electrodes cover the scalp homogeneously
 - a sufficient number of electrodes is used.
 
 > [!WARNING] 
-> No artifact correction method can be perfect. Depending on the data and on the method, a portion of genuine EEG signals will be removed as well. The critical question to judge on an artifact correction algorithm is therefore its *sensitivity* and *specificity*. Please visit the [GEDAI website](https://neurotuning.github.io/gedai/dev/index.html) and read the associated paper given in the [References](#-references) for more information.
+> No artifact correction based on spatial decompositions method can be perfect. Depending on the data and on the method, a portion of genuine EEG signals will be removed as well. The critical question to judge on an artifact correction algorithm is therefore its *sensitivity* and *specificity*. Please visit the [GEDAI website](https://neurotuning.github.io/gedai/dev/index.html) and read the associated paper given in the [references](#-references) for more information.
 
 > [!TIP] 
-> By default, **GEDAI** adopts the full-rank pseudo common average reference — see [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!), which preserves the rank of the input data, but cannot be reverted after denoising. While this is preferable in general, **Gedai.jl** allows to work also in the original electrical reference if needed— see the [Examples](#-examples).
+> By default, **GEDAI** adopts the full-rank pseudo common average reference — see [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!), which preserves the rank of the input data, but cannot be reverted after denoising. While this is preferable in general, **Gedai.jl** allows to work also in the original electrical reference if needed— see the last [example](#-examples).
 
 ![separator](Documents/separator.png)
 
@@ -62,8 +62,12 @@ data, srate, labels = read_example_data(example_data);
 
 clean, data_ref, score, t = denoise(data, srate, labels);
 
-args=(overlay_color = :burlywood, Y_color=:sienna2);
-eegplot(clean, srate, labels; overlay=data_ref, Y=data_ref-clean, args...)
+eegplot(clean, srate, labels; 
+        overlay=data_ref, 
+        Y=data_ref-clean,
+        overlay_color = :burlywood, 
+        Y_color=:sienna2
+        )
 ```
 
 You will be able to inspect the data, the removed artifacts and the cleaned data. Click [here](https://github.com/Marco-Congedo/EEGPlot.jl/blob/master/docs/src/assets/GDEAI_small.gif) for a quick preview of what you will see once the code has executed. For more options on visualizations, see [EEGPlot](https://github.com/Marco-Congedo/EEGPlot.jl).
@@ -78,7 +82,7 @@ The package provides several example files. Any of the following can be used in 
 
 ```julia
 # Supposing that `data` is a vector of EEG recordings and supposing that
-# `sr` and `labels` are the sampling rate and electrode labels common to all recordings,
+# `sr` and `labels` are the sampling rate and electrode labels, common to all recordings,
 cleans = similar(data); # memory to store the corresponding cleaned recordings
 refCOV = refcov(labels, 0.05); # precompute model covariance matrix
 precomp = precompute(refCOV, :cholesky); # precompute gevd matrices
@@ -89,7 +93,7 @@ end
 ```
 
 > [!TIP]
-> If you need to preserve the original electrical reference of the data, you can pre-compute a model covariance matrix with this electrical reference  using package [Leadfields](https://github.com/Marco-Congedo/Leadfields.jl). The reference electrode, however, must be comprised in this [list](Documents/sensors343.txt). For example, if the electrical reference is the right ear-lobe (A2):
+> If you need to preserve the original electrical reference of the data, you can pre-compute a model covariance matrix with the same reference using package [Leadfields.jl](https://github.com/Marco-Congedo/Leadfields.jl). For doing so, however, the reference must be a single lead (e.g., linked ears is not allowed) and must be comprised in this [list](Documents/sensors343.txt). For example, if the electrical reference is the right ear-lobe (A2):
 
 ```julia
 # Supposing that `X` is an EEG recording referenced to the right ear-lobe,
@@ -99,14 +103,16 @@ using Gedai, Leadfields, Statsbase
 # compute leadfield
 K, ename, eloc, gridloc = leadfield(labels; reference = "A2")
 
-# compute and regularize the model covariance matrix of the leadfield as it is done in Gedai.jl
-refCOV = regularize(Symmetric(cov(SimpleCovariance(), k'; mean=nothing)), 0.05)
+# compute and regularize (lambda) the model covariance matrix of the leadfield as it is done in Gedai.jl
+lambda = 0.05
+refCOV = regularize(Symmetric(cov(SimpleCovariance(), K'; mean=nothing)), lambda)
 
-clean, data_ref, score, t = denoise(X, sr, labels; car = false, refCOV);
+clean, data_ref, score, t = denoise(X, sr, labels; car = false, refCOV, lambda);
 
 # Note that:
 # - argument `car` is set to false to prevent re-referencing the data to the pseudo common average
 # - argument `refCOV` is passed for overriding the default model covariance matrix
+# - argument `lambda` is passed to match the regularization of the model covariance matrix
 ```
 
 [▲ index](#-index)
