@@ -10,12 +10,18 @@
 
 A pure-[julia](https://julialang.org/) package implementing the **GEDAI** denoising method for EEG data.
 
-> [!NOTE] 
-> The method **works very well** in general, is **fast** and is **completely automatic**. The only drawback is that the EEG data needs to be referenced to a common average and such reference cannot be reverted after denoising. 
-> **GEDAI** adopts the full-rank pseudo common average reference — see [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!) — and the input data is always re-referenced this way.
+**GEDAI** performs sliding-windows generalized eigenvalue-eigenvector decompositions of data covariance matrices and a fixed model covariance matrix obtained from a standard leadfield — see [Leadfield](https://github.com/Marco-Congedo/Leadfields.jl). It uses a new criterion to define a rejection region for the artifact components, which yields a **SENSAI** score.
 
-For detailed information about the method, please visit the [GEDAI website](https://neurotuning.github.io/gedai/dev/index.html)
-and read the associated paper given in the [References](#-references).
+The method has the advantage of being fast and to perform generally well with default settings, which yield automatic artifact correction, provided that:
+- the electrodes cover the scalp homogeneously
+- a sufficient number of electrodes is used.
+
+> [!WARNING] 
+> No artifact correction method can be perfect. Depending on the data and on the method, a portion of genuine EEG signals will be removed as well. The critical question to judge on an artifact correction algorithm is therefore its sensitivity and specificity. Please visit the [GEDAI website](https://neurotuning.github.io/gedai/dev/index.html) and read the associated paper given in the [References](#-references) for detailed information about the method
+
+> [!NOTE] 
+> By default, **GEDAI** re-reference the input data and such reference cannot be reverted after denoising. 
+> As proposed in the original paper, the method adopts the full-rank pseudo common average reference — see [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!) so as to preserve the rank of the input data. **Gedai.jl** allows also to work in the original reference — see the [Examples](#-examples).
 
 ![separator](Documents/separator.png)
 
@@ -30,8 +36,6 @@ and read the associated paper given in the [References](#-references).
 - ⚖️ [License](#-license)
 
 ![separator](Documents/separator.png)
-
-
 
 ## 📦 Installation
 
@@ -49,7 +53,7 @@ Execute the following command in julia's REPL:
 
 
 ## 💡 Examples
-Run the following code:
+Run the following code (automatic artifact correction):
 
 ```julia
 using Gedai, EEGPlot, GLMakie
@@ -69,20 +73,41 @@ The package provides several example files. Any of the following can be used in 
 
 "CAUEEG", "artifact_jumps", "empirical_NOISE_EOG_EMG", "synthetic_bad_channels", "blinks and bad channels".
 
-> [!TIP] 
-> If you need to denoise several files with the same electrode montage (`labels`), 
+> [!TIP]
+> If you need to denoise several files with the same electrode montage (the `labels`), 
 > for example all recordings of an experiment, you can gain time by doing some pre-computations:
 
 ```julia
-# Supposing that `data` is a vector of EEG recordings 
+# Supposing that `data` is a vector of EEG recordings and supposing that
+# `sr` and `labels` are the sampling rate and electrode labels common to all recordings
 cleans = similar(data); # memory to store the corresponding cleaned recordings
-refCOV = refcov(labels, 0.05); # precompute reference matrix
+refCOV = refcov(labels, 0.05); # precompute model covariance matrix
 precomp = precompute(refCOV, :cholesky); # precompute gevd matrices
 @threads for (d, datum) in enumerate(data) # multi-threading across files and reuse pre-computations
             cleans[d], rest = denoise(datum, sr, labels; threaded=false, refCOV, precomp);
 end
 # `cleans` is now a vector holding the clean EEG recordings corresponding to `data`
+```
 
+> [!TIP]
+> If you need to preserve the original electrical reference of the data you can pre-compute a model covariance matrix with the electrical reference of your data using package [Leadfield](https://github.com/Marco-Congedo/Leadfields.jl), as long as the reference you have used for the recording is comprised in the electrode labels list [sensors343.txt](Documents/sensors343.txt). For example, supposing the electrical reference is the right ear-lobe (A2):
+
+```julia
+# Supposing that `X` is an EEG recording referenced to the right ear-lobe,
+# `sr` is its sampling rate and `labels` the electrode labels
+using Gedai, Leadfields, Statsbase
+
+# compute leadfield
+K, ename, eloc, gridloc = leadfield(labels; reference = "A2")
+
+# compute and regularize the model covariance matrix of the leadfield as it is done in Gedai.jl
+refCOV = regularize(Symmetric(cov(SimpleCovariance(), k'; mean=nothing)), 0.05)
+
+clean, data_ref, score, t = denoise(X, sr, labels; car = false, refCOV);
+
+# Note that:
+# - argument `car` is set to false to prevent re-referencing the data to the pseudo common average
+# - argument `refCOV` is passed for overriding the default model covariance matrix
 ```
 
 [▲ index](#-index)
@@ -99,7 +124,7 @@ The package exports the following functions:
 |:---------|:---------|
 | [denoise](#denoise)   | main function. GEDAI denoising  |
 | [read_example_data](#read_example_data)  | read example data for demos |
-| [refcov](#refcov)  | load the reference matrix used by GEDAI for a given electrode montage and regularize it |
+| [refcov](#refcov)  | load the model matrix used by GEDAI for a given electrode montage and regularize it |
 | [precompute](#precompute)  | precompute matrices that are used repeatedly |
 
 [▲ index](#-index)
@@ -119,6 +144,7 @@ function denoise(# arguments:
                 gevd_method     ::Symbol                        = :cholesky
                 refCOV          ::Union{SymOrHerm, Nothing}     = nothing,
                 precomp         ::Union{Chols, Whits, Nothing}  = nothing,
+                threshold       ::Float64                       = 1.0,
                 threaded        ::Bool                          = true,
                 BLAS_threaded   ::Bool                          = true,
                 verbose         ::Bool                          = true
@@ -127,7 +153,6 @@ function denoise(# arguments:
                 epoch_length    ::Float64                       = 1.0,
                 top_PCs         ::Int                           = 3, 
                 cov_mean_type   ::Union{Int, Nothing}           = nothing, # or `0` 
-                threshold       ::Float64                       = 1.0,
                 brent_tol       ::Float64                       = 0.01,
                 t_range         ::Tuple{Float64, Float64}       = (0.0, 12.0)
                 ) where T<:Real
@@ -150,10 +175,10 @@ function denoise(# arguments:
     - `:gevd`: standard gevd
     - `:cholesky`: 2-step gevd with whitening by the inverse of the Cholesky factor
     - `:invsqrt`: 2-step gevd with whitening by the inverse of the principal square root,
-- `refCOV`: Default = `nothing`. Can be a `Symmetric` or `Hermitian` matrix holding the reference covariance matrix (pre-computed for hastening computations),
+- `refCOV`: Default = `nothing`. Can be a `Symmetric` or `Hermitian` matrix holding the model covariance matrix (pre-computed for hastening computations),
 
 > [!NOTE]
-> For precomputing the reference matrix, see [refcov](#refcov)
+> For precomputing the model covariance matrix, see [refcov](#refcov)
 
 - `precomp`: default = `nothing`, can hold pre-computed matrices to hasten computations:
     - if `gevd_method=:cholesky` : a 2-tuple holding the Cholesky factor of refCOV and its inverse transpose
@@ -162,18 +187,19 @@ function denoise(# arguments:
 > [!NOTE]
 > For precomputing these matrices, see [precompute](#precompute)
 
+- `threshold`: a positive real number, the threshold for artifact correction used in SENSAI. Default = `1.0`. This can be used for fine-tuning the rejection region; with a threshold <1 the artifact rejection will be more aggressive, but the probability to reject genuine EEG signal increases as well. Conversely for a threshold >1. Typical values are in between 0.5 and 2.
+
 - `threaded`: if `true` (default), run in multi-threading mode. Refer to julia documentation for learning how to set the number of threads to be used,
 - `BLAS_threaded`: if `true` (default), run BLAS operations (for linear algebra) in multi-threading mode,
 - `verbose`: if `true` (default), print information while running the algorithm.
 
 The following optional keyword arguments are there for methodological research purposes. Change them only if you know what you are doing :
 
-- `car`: if `true` (default), re-reference the input data to the pseudo common average reference. 
-- `lambda`: a positive real number, the amount of regularization of the reference matrix. Deafult = `0.05`
+- `car`: if `true` (default), re-reference the input data to the pseudo common average
+- `lambda`: a positive real number, the amount of regularization of the model covariance matrix. Deafult = `0.05`
 - `epoch_length`: a positive real number, the length of the sliding window, in seconds, used by GEDAI. Deafult = `1.0`
 - `top_PCs`: a positive integer < `N` the number of the generalized principal components used by the SENSAI algorithm. Deafult = `3`
-- `cov_mean_type`: if `nothing` (default), subtracts the mean vector when computing covariance matrices. If `0`, do not.
-- `threshold`: a positive real number, the threshold for artifact correction used in SENSAI. Default = `1.0`
+- `cov_mean_type`: if `nothing` (default), subtracts the mean vector when computing covariance matrices. If `0`, do not
 - `brent_tol`: a real number used to find the local minimum of a function using Brent's method (for SENSAI). Deafult = `0.01`
 - `t_range`: a Tuple{Float64, Float64} delimiting the acceptance region for eigenvalues. Deafult = (0.0, 12.0).
 
@@ -228,7 +254,7 @@ See [Examples](#-examples) for usage.
 function refcov(labels::Vector{String}, lambda::Float64= 0.05)
 ```
 
-Load the reference matrix used by GEDAI for a given electrode montage given by the vector of electrode labels `labels` 
+Load the model covariance matrix used by GEDAI for a given electrode montage given by the vector of electrode labels `labels` 
 and regularize it by amount `lambda`.
 
 > [!WARNING] 
@@ -250,7 +276,7 @@ function precompute(refCOV::SymOrHerm, gevd_method::Symbol; warning::Bool = true
 Precompute matrices that are used repeatedly. This is useful when several recordings with the same electrode montage 
 are to be denoised.
 
-`refCOV` is the reference covariance matrix to be used by the GEDAI algorithm. It is to be computed by function [refcov](#refcov).
+`refCOV` is the model covariance matrix to be used by the GEDAI algorithm. It is to be computed by function [refcov](#refcov).
 
 `gevd_method` is the generalized eigenvector-eigenvalue (gevd) method to be used when calling the [denoise](#denoise) function.
 Therefore, it must match the `gevd_method` passed to that function (for which the default is `:cholesky`).
