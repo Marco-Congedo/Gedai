@@ -10,7 +10,7 @@
 
 A pure-[julia](https://julialang.org/) package implementing the **GEDAI** denoising method for EEG data.
 
-**GEDAI** performs generalized eigenvalue-eigenvector decompositions of sliding-windows data covariance matrices and a fixed model covariance matrix obtained from a standard leadfield used in EEG inverse solutions — see [Leadfield](https://github.com/Marco-Congedo/Leadfields.jl). It defines a new criterion to define a rejection region for the artifact components, which yields a **SENSAI** score.
+**GEDAI** performs generalized eigenvalue-eigenvector (GEVD) decompositions of sliding-windows data covariance matrices and a fixed model covariance matrix obtained from a standard leadfield used in EEG inverse solutions — see [Leadfields](https://github.com/Marco-Congedo/Leadfields.jl). It defines a new criterion to define a rejection region for the artifact components, which yields a **SENSAI** score.
 
 The method has the advantage of being fast and of performing surprisingly well with default settings, provided that:
 - the electrodes cover the scalp homogeneously
@@ -20,8 +20,7 @@ The method has the advantage of being fast and of performing surprisingly well w
 > No artifact correction method can be perfect. Depending on the data and on the method, a portion of genuine EEG signals will be removed as well. The critical question to judge on an artifact correction algorithm is therefore its *sensitivity* and *specificity*. Please visit the [GEDAI website](https://neurotuning.github.io/gedai/dev/index.html) and read the associated paper given in the [References](#-references) for more information.
 
 > [!TIP] 
-> By default, **GEDAI** adopts the full-rank pseudo common average reference — see [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!), which preserves the rank of the input data, but cannot be reverted after denoising. **Gedai.jl** allows also to work in the original electrical reference — see the [Examples](#-examples).
-
+> By default, **GEDAI** adopts the full-rank pseudo common average reference — see [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!), which preserves the rank of the input data, but cannot be reverted after denoising. While this is preferable in general, **Gedai.jl** allows to work also in the original electrical reference if needed— see the [Examples](#-examples).
 
 ![separator](Documents/separator.png)
 
@@ -67,7 +66,7 @@ args=(overlay_color = :burlywood, Y_color=:sienna2);
 eegplot(clean, srate, labels; overlay=data_ref, Y=data_ref-clean, args...)
 ```
 
-You will be able to inspect the data, the removed artifacts and the cleaned data. Click [here](https://github.com/Marco-Congedo/EEGPlot.jl/blob/master/docs/src/assets/GDEAI_small.gif) for a quick preview of what you will see once the code has executed. For more options on visualizations, see the [EEGPlot package](https://github.com/Marco-Congedo/EEGPlot.jl).
+You will be able to inspect the data, the removed artifacts and the cleaned data. Click [here](https://github.com/Marco-Congedo/EEGPlot.jl/blob/master/docs/src/assets/GDEAI_small.gif) for a quick preview of what you will see once the code has executed. For more options on visualizations, see [EEGPlot](https://github.com/Marco-Congedo/EEGPlot.jl).
 
 The package provides several example files. Any of the following can be used in the demo above: 
 
@@ -79,7 +78,7 @@ The package provides several example files. Any of the following can be used in 
 
 ```julia
 # Supposing that `data` is a vector of EEG recordings and supposing that
-# `sr` and `labels` are the sampling rate and electrode labels common to all recordings
+# `sr` and `labels` are the sampling rate and electrode labels common to all recordings,
 cleans = similar(data); # memory to store the corresponding cleaned recordings
 refCOV = refcov(labels, 0.05); # precompute model covariance matrix
 precomp = precompute(refCOV, :cholesky); # precompute gevd matrices
@@ -90,11 +89,11 @@ end
 ```
 
 > [!TIP]
-> If you need to preserve the original electrical reference of the data you can pre-compute a model covariance matrix with the electrical reference of your data using package [Leadfield](https://github.com/Marco-Congedo/Leadfields.jl), as long as the reference you have used for the recording is comprised in the electrode labels list [sensors343.txt](Documents/sensors343.txt). For example, supposing the electrical reference is the right ear-lobe (A2):
+> If you need to preserve the original electrical reference of the data, you can pre-compute a model covariance matrix with this electrical reference  using package [Leadfields](https://github.com/Marco-Congedo/Leadfields.jl). The reference electrode, however, must be comprised in this [list](Documents/sensors343.txt). For example, if the electrical reference is the right ear-lobe (A2):
 
 ```julia
 # Supposing that `X` is an EEG recording referenced to the right ear-lobe,
-# `sr` is its sampling rate and `labels` the electrode labels
+# `sr` is its sampling rate and `labels` its electrode labels,
 using Gedai, Leadfields, Statsbase
 
 # compute leadfield
@@ -165,10 +164,10 @@ function denoise(# arguments:
 - `sr`: the sampling rate of the data. It can be an Integer or a Real type,
 - `labels`: a vector of String types holding the sensor labels (e.g., "FP1", "FP2",...). 
 > [!WARNING] 
-> Each label must match one of the strings listed in the [sensors343.txt](Documents/sensors343.txt) file.
+> Each label must match one of the strings in this [list](Documents/sensors343.txt) (case-insensitive matching).
 
 **Optional Keyword Arguments:**
-- `wavelet_levels`: a positive integer, default = `9`. If >1, run the wavelet-based GEDAI with this number of bands, otherwise run the broadband version of GEDAI,
+- `wavelet_levels`: a positive integer, default = `9`. If >1, run the **wavelet-based** GEDAI with this number of bands, otherwise run the **broadband** version of GEDAI,
 - `high-pass`: a positive real number, default = `0.5`. if it is not `nothing`, submit the data to a fourth-order linear phase response
     (forward-backward) high-pass filter with cut-off at this value (Hz),
 - `gevd_method`: a symbol, the generalized eigenvector-eigenvalues (gevd) methods (default = :cholesky). Possible values are :
@@ -187,15 +186,15 @@ function denoise(# arguments:
 > [!NOTE]
 > For precomputing these matrices, see [precompute](#precompute)
 
-- `threshold`: a positive real number, the threshold for artifact correction used in SENSAI. Default = `1.0`. This can be used for fine-tuning the rejection region; with a threshold <1 the artifact rejection will be more aggressive, but the probability to reject genuine EEG signal increases as well. Conversely for a threshold >1. Typical values are in between 0.5 and 2.
+- `threshold`: a positive real number, the threshold for artifact correction used in SENSAI. Default = `1.0`. This can be used for fine-tuning the rejection region; with a threshold <1 the artifact rejection will be more aggressive, but the probability to reject genuine EEG signal increases as well. Conversely for a threshold >1,
 
+- `car`: if `true` (default), re-reference the input data to the pseudo common average. This is set to false if a custom model covariance matrix is pre-computed for preserving the original electrical reference of the data — see the last [example](#-examples),
 - `threaded`: if `true` (default), run in multi-threading mode. Refer to julia documentation for learning how to set the number of threads to be used,
 - `BLAS_threaded`: if `true` (default), run BLAS operations (for linear algebra) in multi-threading mode,
 - `verbose`: if `true` (default), print information while running the algorithm.
 
 The following optional keyword arguments are there for methodological research purposes. Change them only if you know what you are doing :
 
-- `car`: if `true` (default), re-reference the input data to the pseudo common average
 - `lambda`: a positive real number, the amount of regularization of the model covariance matrix. Deafult = `0.05`
 - `epoch_length`: a positive real number, the length of the sliding window, in seconds, used by GEDAI. Deafult = `1.0`
 - `top_PCs`: a positive integer < `N` the number of the generalized principal components used by the SENSAI algorithm. Deafult = `3`
