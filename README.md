@@ -10,18 +10,18 @@
 
 A pure-[julia](https://julialang.org/) package implementing the **GEDAI** denoising method for EEG data.
 
-**GEDAI** performs sliding-windows generalized eigenvalue-eigenvector decompositions of data covariance matrices and a fixed model covariance matrix obtained from a standard leadfield — see [Leadfield](https://github.com/Marco-Congedo/Leadfields.jl). It uses a new criterion to define a rejection region for the artifact components, which yields a **SENSAI** score.
+**GEDAI** performs generalized eigenvalue-eigenvector decompositions of sliding-windows data covariance matrices and a fixed model covariance matrix obtained from a standard leadfield used in EEG inverse solutions — see [Leadfield](https://github.com/Marco-Congedo/Leadfields.jl). It defines a new criterion to define a rejection region for the artifact components, which yields a **SENSAI** score.
 
-The method has the advantage of being fast and to perform generally well with default settings, which yield automatic artifact correction, provided that:
+The method has the advantage of being fast and of performing surprisingly well with default settings, provided that:
 - the electrodes cover the scalp homogeneously
 - a sufficient number of electrodes is used.
 
 > [!WARNING] 
-> No artifact correction method can be perfect. Depending on the data and on the method, a portion of genuine EEG signals will be removed as well. The critical question to judge on an artifact correction algorithm is therefore its sensitivity and specificity. Please visit the [GEDAI website](https://neurotuning.github.io/gedai/dev/index.html) and read the associated paper given in the [References](#-references) for detailed information about the method
+> No artifact correction method can be perfect. Depending on the data and on the method, a portion of genuine EEG signals will be removed as well. The critical question to judge on an artifact correction algorithm is therefore its *sensitivity* and *specificity*. Please visit the [GEDAI website](https://neurotuning.github.io/gedai/dev/index.html) and read the associated paper given in the [References](#-references) for more information.
 
-> [!NOTE] 
-> By default, **GEDAI** re-reference the input data and such reference cannot be reverted after denoising. 
-> As proposed in the original paper, the method adopts the full-rank pseudo common average reference — see [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!) so as to preserve the rank of the input data. **Gedai.jl** allows also to work in the original reference — see the [Examples](#-examples).
+> [!TIP] 
+> By default, **GEDAI** adopts the full-rank pseudo common average reference — see [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!), which preserves the rank of the input data, but cannot be reverted after denoising. **Gedai.jl** allows also to work in the original electrical reference — see the [Examples](#-examples).
+
 
 ![separator](Documents/separator.png)
 
