@@ -150,10 +150,10 @@ function denoise(# arguments:
                 refCOV          ::Union{SymOrHerm, Nothing}     = nothing,
                 precomp         ::Union{Chols, Whits, Nothing}  = nothing,
                 threshold       ::Float64                       = 1.0,
+                car             ::Bool                          = true,
                 threaded        ::Bool                          = true,
                 BLAS_threaded   ::Bool                          = true,
                 verbose         ::Bool                          = true
-                car             ::Bool                          = true,
                 lambda          ::Float64                       = 0.05,
                 epoch_length    ::Float64                       = 1.0,
                 top_PCs         ::Int                           = 3, 
@@ -194,30 +194,33 @@ function denoise(# arguments:
 
 - `threshold`: a positive real number, the threshold for artifact correction used in SENSAI. Default = `1.0`. This can be used for fine-tuning the rejection region; with a threshold <1 the artifact rejection will be more aggressive, but the probability to reject genuine EEG signal increases as well. Conversely for a threshold >1,
 
-- `car`: if `true` (default), re-reference the input data to the pseudo common average. This is set to false if a custom model covariance matrix is pre-computed for preserving the original electrical reference of the data — see the last [example](#-examples),
+- `car`: if `true` (default), re-reference the input data to the pseudo common average. This is set to false if a custom model covariance matrix is pre-computed for preserving the original reference of the data — see the last [example](#-examples),
 - `threaded`: if `true` (default), run in multi-threading mode. Refer to julia documentation for learning how to set the number of threads to be used,
 - `BLAS_threaded`: if `true` (default), run BLAS operations (for linear algebra) in multi-threading mode,
 - `verbose`: if `true` (default), print information while running the algorithm.
 
-The following optional keyword arguments are there for methodological research purposes. Change them only if you know what you are doing :
+The behavior of GEDAI can be further tuned using the following optional keyword arguments. Change them only if you know what you are doing :
 
 - `lambda`: a positive real number, the amount of regularization of the model covariance matrix. Deafult = `0.05`
 - `epoch_length`: a positive real number, the length of the sliding window, in seconds, used by GEDAI. Deafult = `1.0`
 - `top_PCs`: a positive integer < `N` the number of the generalized principal components used by the SENSAI algorithm. Deafult = `3`
 - `cov_mean_type`: if `nothing` (default), subtracts the mean vector when computing covariance matrices. If `0`, do not
 - `brent_tol`: a real number used to find the local minimum of a function using Brent's method (for SENSAI). Deafult = `0.01`
-- `t_range`: a Tuple{Float64, Float64} delimiting the acceptance region for eigenvalues. Deafult = (0.0, 12.0).
+- `t_range`: a Tuple{Float64, Float64} delimiting the acceptance region for eigenvalues. Default = (0.0, 12.0).
 
 **Return:**
 
 The 4-tuple holding:
-- an EEG data matrix of the same size as `data`, holding the denoised data referenced to the full-rank pseudo-common average (the common average reference with correction = 1 as explained [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!)) and high-pass filtered if high-pass is >0. 
-- the original data referenced to the full-rank pseudo-common average and high-pass filtered if high-pass is >0.
+- an EEG data matrix of the same size as `data`, holding the denoised data,
+- the original data.
 - the SENSAI score (the higher, the better),
 - the execution time in seconds.
 
+The first two returned elements are data matrices. They are referenced to the full-rank pseudo-common average (the common average reference with correction = 1 as explained [here](https://marco-congedo.github.io/Eegle.jl/stable/Processing/#Eegle.Processing.car!)) if `car` is true (default)
+and high-pass filtered if `high-pass ` is not `nothing` (default = 0.5(Hz)). 
+
 > [!TIP] 
-> The removed artifacts are obtained subtracting the first returned argument (the denoised data) from the second (the re-referenced input data).
+> The removed artifacts are obtained subtracting the first returned element (the denoised data, possibly re-referenced and high-pass filtered) from the second (the input data, possibly re-referenced and high-pass filtered). Always use these elements, for computing the removed artifacts.
 
 See [Examples](#-examples) for usage.
 
