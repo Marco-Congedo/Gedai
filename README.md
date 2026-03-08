@@ -100,9 +100,6 @@ end
 # `sr` is its sampling rate and `labels` its electrode labels,
 using Gedai, Leadfields, Statsbase
 
-# compute leadfield
-K, ename, eloc, gridloc = leadfield(labels; reference = "A2")
-
 # compute and regularize (lambda) the model covariance matrix of the leadfield referenced to A2
 lambda = 0.05
 refCOV = refcov(labels, "A2", lambda)
