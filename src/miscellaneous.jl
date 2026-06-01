@@ -16,7 +16,7 @@ refcov(labels::Vector{String}, lambda::Float64= 0.05) =
 function refcov(labels::Vector{String}, reference::String, lambda::Float64= 0.05;
                 cov_mean_type::Union{Int, Nothing} = nothing) # or `0` )
 
-    K, _ = leadfield(labels; reference = reference)
+    K, _ = leadfield(labels; reference = reference, voxels = 1210)
 
     # compute and regularize (lambda) the model covariance matrix of the leadfield as it is done in Gedai.jl
     return regularize(Symmetric(cov(SimpleCovariance(), K'; mean=cov_mean_type)), lambda)
