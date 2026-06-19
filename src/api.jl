@@ -21,6 +21,9 @@ function denoise(data::Matrix{T}, sr::Union{Float64, Int}, labels::Vector{String
                     BLAS_threaded   ::Bool                          = true,
                     verbose         ::Bool                          = true) where T<:Real
 
+    
+    length(labels)==size(data, 2) || throw(ArgumentError("The length of vector `labels` must be equal to the columns of `data` (number of electrodes)"))
+
     t_start = time()
 
     verbose && println(font1color, "Gedai Denoising...", fontwhite)
