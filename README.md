@@ -162,7 +162,7 @@ function denoise(# arguments:
 
 
 **Arguments:**
-- `data`: an EEG data matrix of any Real type and dimension `TxN`, where `T` is the number of channels and `N` the number of samples,
+- `data`: an EEG data matrix of any Real type and dimension `NxT`, where `N` is the number of samples, and `T` the number of channels
 - `sr`: the sampling rate of the data. It can be an Integer or a Real type,
 - `labels`: a vector of String types holding the sensor labels (e.g., "FP1", "FP2",...). 
 > [!WARNING] 
@@ -197,11 +197,11 @@ function denoise(# arguments:
 
 The behavior of GEDAI can be further tuned using the following optional keyword arguments. Change them only if you know what you are doing :
 
-- `lambda`: a positive real number, the amount of regularization of the model covariance matrix. Deafult = `0.05`
-- `epoch_length`: a positive real number, the length of the sliding window, in seconds, used by GEDAI. Deafult = `1.0`
-- `top_PCs`: a positive integer < `N` the number of the generalized principal components used by the SENSAI algorithm. Deafult = `3`
+- `lambda`: a positive real number, the amount of regularization of the model covariance matrix. Default = `0.05`
+- `epoch_length`: a positive real number, the length of the sliding window, in seconds, used by GEDAI. Default = `1.0`
+- `top_PCs`: a positive integer < `N` the number of the generalized principal components used by the SENSAI algorithm. Default = `3`
 - `cov_mean_type`: if `nothing` (default), subtracts the mean vector when computing covariance matrices. If `0`, do not
-- `brent_tol`: a real number used to find the local minimum of a function using Brent's method (for SENSAI). Deafult = `0.01`
+- `brent_tol`: a real number used to find the local minimum of a function using Brent's method (for SENSAI). Default = `0.01`
 - `t_range`: a Tuple{Float64, Float64} delimiting the acceptance region for eigenvalues. Default = (0.0, 12.0).
 
 **Return:**
